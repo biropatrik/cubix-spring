@@ -6,7 +6,7 @@ import hu.cubix.hr.patrik.model.Employee;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.*;
 
 @Service
 public class SmartEmployeeService implements EmployeeService {
@@ -29,6 +29,9 @@ public class SmartEmployeeService implements EmployeeService {
     }
 
     private float getYearsSpentFromDateTime(LocalDateTime dateTime) {
-        return LocalDateTime.now().getYear() - dateTime.getYear();
+        Period periodSpent = Period.between(dateTime.toLocalDate(), LocalDate.now());
+        return periodSpent.getYears()
+                + periodSpent.getMonths() / 12f
+                + periodSpent.getDays() / (float) Year.of(periodSpent.getYears()).length();
     }
 }

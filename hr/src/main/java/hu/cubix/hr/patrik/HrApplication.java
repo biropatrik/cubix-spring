@@ -22,10 +22,10 @@ public class HrApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		Employee employee1 = new Employee(1, "Java Developer", 350, LocalDateTime.of(2000,10,1, 8, 0));
-		Employee employee2 = new Employee(1, "Java Developer", 350, LocalDateTime.of(2018,10,1, 8, 0));
-		Employee employee3 = new Employee(1, "Java Developer", 350, LocalDateTime.of(2020,10,1, 8, 0));
-		Employee employee4 = new Employee(1, "Java Developer", 350, LocalDateTime.of(2023,10,1, 8, 0));
+		Employee employee1 = new Employee(1, "Java Developer", 350, LocalDateTime.of(2021,4,11, 8, 0));
+		Employee employee2 = new Employee(1, "Java Developer", 350, LocalDateTime.of(2021,9,1, 8, 0));
+		Employee employee3 = new Employee(1, "Java Developer", 350, LocalDateTime.of(2010,2,1, 8, 0));
+		Employee employee4 = new Employee(1, "Java Developer", 350, LocalDateTime.of(2018,10,1, 8, 0));
 
 		salaryService.giveNewSalaryForEmployee(employee1);
 		salaryService.giveNewSalaryForEmployee(employee2);
