@@ -1,0 +1,16 @@
+spring:
+  profiles:
+    active: smart
+
+employee:
+  salary:
+    raises:
+    -
+       years: 5
+       percentage: 5
+    -
+       years: 10
+       percentage: 10
+    -
+       years: 2.5
+       percentage: 2
