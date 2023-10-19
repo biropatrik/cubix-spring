@@ -1,18 +1,18 @@
-package hu.cubix.hr.patrik.model;
+package hu.cubix.hr.patrik.dto;
 
 import java.time.LocalDateTime;
 
-public class Employee {
+public class EmployeeDto {
 
     private long id;
     private String job;
     private int salary;
     private LocalDateTime timestamp;
 
-    public Employee() {
+    public EmployeeDto()  {
     }
 
-    public Employee(long id, String job, int salary, LocalDateTime timestamp) {
+    public EmployeeDto(long id, String job, int salary, LocalDateTime timestamp) {
         this.id = id;
         this.job = job;
         this.salary = salary;
