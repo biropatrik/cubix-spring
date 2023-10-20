@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 public class Employee {
 
     private long id;
+    private String name;
     private String job;
     private int salary;
     private LocalDateTime timestamp;
@@ -12,8 +13,9 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(long id, String job, int salary, LocalDateTime timestamp) {
+    public Employee(long id, String name, String job, int salary, LocalDateTime timestamp) {
         this.id = id;
+        this.name = name;
         this.job = job;
         this.salary = salary;
         this.timestamp = timestamp;
@@ -49,5 +51,13 @@ public class Employee {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

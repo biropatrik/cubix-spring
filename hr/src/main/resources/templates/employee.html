@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>HR</title>
+</head>
+<body>
+    <form th:object="${employee}" th:method="put" th:action="@{/employee/{id}(id=*{id})}">
+        Id: <span th:text="*{id}"></span> <br/>
+        Name: <input th:field="*{name}" /> <br/>
+        Job: <input th:field="*{job}" /> <br/>
+        Salary: <input th:field="*{salary}" /> <br/>
+        Timestamp: <input th:field="*{timestamp}" /> <br/>
+        <input type="submit" value="Modify" />
+    </form>
+</body>
+</html>
