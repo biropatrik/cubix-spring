@@ -1,6 +1,9 @@
 package hu.cubix.hr.patrik.controller;
 
 import hu.cubix.hr.patrik.dto.EmployeeDto;
+import hu.cubix.hr.patrik.model.Employee;
+import hu.cubix.hr.patrik.service.EmployeeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +19,11 @@ public class EmployeeRestController {
 
     private Map<Long, EmployeeDto> employees = new HashMap<>();
 
+    @Autowired
+    private EmployeeService employeeService;
+
     {
-        employees.put(1L, new EmployeeDto(1, "Java Developer", 350, LocalDateTime.now()));
+        employees.put(1L, new EmployeeDto(1,"John", "Java Developer", 350, LocalDateTime.now()));
     }
 
     @GetMapping
@@ -67,5 +73,10 @@ public class EmployeeRestController {
             }
         }
         return employeesWithHigherSalary;
+    }
+
+    @PostMapping("/payRaise")
+    public int getPayRaise(@RequestBody Employee employee) {
+        return employeeService.getPayRaisePercent(employee);
     }
 }
