@@ -1,82 +1,74 @@
 package hu.cubix.hr.patrik.controller;
 
 import hu.cubix.hr.patrik.dto.EmployeeDto;
+import hu.cubix.hr.patrik.mapper.EmployeeMapper;
 import hu.cubix.hr.patrik.model.Employee;
-import hu.cubix.hr.patrik.service.EmployeeService;
+import hu.cubix.hr.patrik.service.AbstractEmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeRestController {
 
-    private Map<Long, EmployeeDto> employees = new HashMap<>();
+    @Autowired
+    private AbstractEmployeeService employeeService;
 
     @Autowired
-    private EmployeeService employeeService;
-
-    {
-        employees.put(1L, new EmployeeDto(1,"John", "Java Developer", 350, LocalDateTime.now()));
-    }
+    private EmployeeMapper employeeMapper;
 
     @GetMapping
     public List<EmployeeDto> findAll() {
-        return new ArrayList<>(employees.values());
+        return employeeMapper.employeesToDtos(employeeService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDto> findById(@PathVariable Long id) {
-        EmployeeDto employeeDto = employees.get(id);
-        if(employeeDto == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(employeeDto);
+    public EmployeeDto findById(@PathVariable Long id) {
+        return getEmployeeDtoOrThrow(
+                employeeService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<EmployeeDto> create(@RequestBody EmployeeDto employeeDto) {
-        if(employees.containsKey(employeeDto.getId())) {
-            ResponseEntity.badRequest().build();
-        }
-        employees.put(employeeDto.getId(), employeeDto);
-        return ResponseEntity.ok(employeeDto);
+    public EmployeeDto create(@RequestBody @Valid EmployeeDto employeeDto) {
+        return getEmployeeDtoOrThrow(
+                employeeService.create(employeeMapper.dtoToEmployee(employeeDto)), HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeDto> update(@PathVariable Long id, @RequestBody EmployeeDto employeeDto) {
+    public EmployeeDto update(@PathVariable Long id, @RequestBody @Valid EmployeeDto employeeDto) {
         employeeDto.setId(id);
-        if(!employees.containsKey(employeeDto.getId())) {
-            return ResponseEntity.notFound().build();
-        }
-        employees.put(id, employeeDto);
-        return ResponseEntity.ok(employeeDto);
+        return getEmployeeDtoOrThrow(
+                employeeService.update(employeeMapper.dtoToEmployee(employeeDto)));
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        employees.remove(id);
+        employeeService.remove(id);
     }
 
     @GetMapping("/findByHigherSalary/{salary}")
     public List<EmployeeDto> findByHigherSalary(@PathVariable int salary) {
-        List<EmployeeDto> employeesWithHigherSalary = new ArrayList<>();
-        for(EmployeeDto employeeDto : employees.values()) {
-            if(employeeDto.getSalary() > salary) {
-                employeesWithHigherSalary.add(employeeDto);
-            }
-        }
-        return employeesWithHigherSalary;
+        return employeeMapper.employeesToDtos(employeeService.findByHigherSalary(salary));
     }
 
     @PostMapping("/payRaise")
     public int getPayRaise(@RequestBody Employee employee) {
         return employeeService.getPayRaisePercent(employee);
+    }
+
+    private EmployeeDto getEmployeeDtoOrThrow(Employee employee) {
+        return getEmployeeDtoOrThrow(employee, HttpStatus.NOT_FOUND);
+    }
+
+    private EmployeeDto getEmployeeDtoOrThrow(Employee employee, HttpStatus thrownStatus) {
+        if (employee == null) {
+            throw new ResponseStatusException(thrownStatus);
+        }
+        return employeeMapper.employeeToDto(employee);
     }
 }

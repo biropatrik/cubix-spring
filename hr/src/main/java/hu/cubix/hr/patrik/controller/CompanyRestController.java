@@ -2,6 +2,11 @@ package hu.cubix.hr.patrik.controller;
 
 import hu.cubix.hr.patrik.dto.CompanyDto;
 import hu.cubix.hr.patrik.dto.EmployeeDto;
+import hu.cubix.hr.patrik.mapper.CompanyMapper;
+import hu.cubix.hr.patrik.model.Company;
+import hu.cubix.hr.patrik.service.CompanyService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -12,85 +17,68 @@ import java.util.*;
 @RequestMapping("/api/companies")
 public class CompanyRestController {
 
-    private Map<Long, CompanyDto> companies = new HashMap<>();
-    {
-        companies.put(1L, new CompanyDto(1L, 2222, "SoftWare", "3300 Eger", null));
-        companies.put(2L, new CompanyDto(2L, 2230, "SW2", "3300 Eger", null));
-    }
+    @Autowired
+    CompanyService companyService;
+
+    @Autowired
+    CompanyMapper companyMapper;
 
     @GetMapping
     public List<CompanyDto> findAll(@RequestParam Optional<Boolean> full) {
-        if (full.orElse(false)) {
-            return new ArrayList<>(companies.values());
-        } else {
-            return companies.values().stream()
-                    .map(this::mapCompanyWithoutEmployees)
-                    .toList();
-        }
+        return companyMapper.companiesToDtos(companyService.findAll(full));
     }
 
     @GetMapping("/{id}")
-    public CompanyDto findById(@PathVariable long id, @RequestParam Optional<Boolean> full) {
-        CompanyDto company = getCompanyOrThrow(id);
-        if (full.orElse(false)) {
-            return company;
-        } else {
-            return mapCompanyWithoutEmployees(company);
-        }
+    public CompanyDto findById(@PathVariable long id, @RequestParam Optional<Boolean> isFull) {
+        return getCompanyDtoOrThrow(
+                companyService.findById(id, isFull));
     }
 
     @PostMapping()
-    public CompanyDto create(@RequestBody CompanyDto company) {
-        if (companies.containsKey(company.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        companies.put(company.getId(), company);
-        return company;
+    public CompanyDto create(@RequestBody @Valid CompanyDto companyDto) {
+        return getCompanyDtoOrThrow(
+                companyService.create(companyMapper.dtoToCompany(companyDto)),
+                HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping("/{id}")
-    public CompanyDto update(@PathVariable long id, @RequestBody CompanyDto company) {
-        getCompanyOrThrow(id);
-        company.setId(id);
-        companies.put(id, company);
-        return company;
+    public CompanyDto update(@PathVariable long id, @RequestBody @Valid CompanyDto companyDto) {
+        companyDto.setId(id);
+        return getCompanyDtoOrThrow(
+                companyService.update(companyMapper.dtoToCompany(companyDto)));
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable long id) {
-        companies.remove(id);
+        companyService.remove(id);
     }
 
     @PostMapping("/{id}/employees")
-    public CompanyDto addNewEmployee(@PathVariable long id, @RequestBody EmployeeDto employee) {
-        CompanyDto company = getCompanyOrThrow(id);
-        company.getEmployees().add(employee);
-        return company;
+    public CompanyDto addNewEmployee(@PathVariable long id, @RequestBody @Valid EmployeeDto employeeDto) {
+        return getCompanyDtoOrThrow(
+                companyService.addNewEmployee(id, employeeDto));
     }
 
     @DeleteMapping("/{id}/employees/{employeeId}")
     public CompanyDto deleteEmployeeFromCompany(@PathVariable long id, @PathVariable long employeeId) {
-        CompanyDto company = getCompanyOrThrow(id);
-        company.getEmployees().removeIf(emp -> emp.getId() == employeeId);
-        return company;
+        return getCompanyDtoOrThrow(
+                companyService.deleteEmployeeFromCompany(id, employeeId));
     }
 
     @PutMapping("/{id}/employees")
-    public CompanyDto replaceEmpoyees(@PathVariable long id, @RequestBody List<EmployeeDto> employees) {
-        CompanyDto company = getCompanyOrThrow(id);
-        company.setEmployees(employees);
-        return company;
+    public CompanyDto replaceEmployees(@PathVariable long id, @RequestBody List<@Valid EmployeeDto> employeeDtos) {
+        return getCompanyDtoOrThrow(
+                companyService.replaceEmployees(id, employeeDtos));
     }
 
-    private CompanyDto mapCompanyWithoutEmployees(CompanyDto c) {
-        return new CompanyDto(c.getId(), c.getRegistrationNumber(), c.getName(), c.getAddress(), null);
+    private CompanyDto getCompanyDtoOrThrow(Company company) {
+        return getCompanyDtoOrThrow(company, HttpStatus.NOT_FOUND);
     }
 
-    private CompanyDto getCompanyOrThrow(long id) {
-        CompanyDto company = companies.get(id);
+    private CompanyDto getCompanyDtoOrThrow(Company company, HttpStatus thrownStatus) {
         if (company == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(thrownStatus);
         }
-        return  company;
+        return companyMapper.companyToDto(company);
     }
 }
