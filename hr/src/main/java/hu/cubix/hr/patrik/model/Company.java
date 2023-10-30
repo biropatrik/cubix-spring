@@ -1,22 +1,22 @@
-package hu.cubix.hr.patrik.dto;
+package hu.cubix.hr.patrik.model;
 
-import jakarta.validation.Valid;
+import hu.cubix.hr.patrik.dto.EmployeeDto;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompanyDto {
+public class Company {
 
     private long id;
     private int registrationNumber;
     private String name;
     private String address;
-    private List<@Valid EmployeeDto> employees = new ArrayList<>();
+    private List<EmployeeDto> employees = new ArrayList<>();
 
-    public CompanyDto() {
+    public Company() {
     }
 
-    public CompanyDto(long id, int registrationNumber, String name, String address, List<EmployeeDto> employees) {
+    public Company(long id, int registrationNumber, String name, String address, List<EmployeeDto> employees) {
         this.id = id;
         this.registrationNumber = registrationNumber;
         this.name = name;

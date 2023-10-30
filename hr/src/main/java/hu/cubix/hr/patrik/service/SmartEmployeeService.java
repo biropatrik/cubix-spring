@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.*;
 
 @Service
-public class SmartEmployeeService implements EmployeeService {
+public class SmartEmployeeService extends AbstractEmployeeService implements EmployeeService {
 
     @Autowired
     private EmployeeConfigurationProperties config;

@@ -1,13 +1,21 @@
 package hu.cubix.hr.patrik.dto;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Positive;
+
 import java.time.LocalDateTime;
 
 public class EmployeeDto {
 
     private long id;
+    @NotEmpty
     private String name;
+    @NotEmpty
     private String job;
+    @Positive
     private int salary;
+    @Past
     private LocalDateTime timestamp;
 
     public EmployeeDto()  {
@@ -27,6 +35,14 @@ public class EmployeeDto {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getJob() {
