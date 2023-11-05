@@ -1,54 +1,67 @@
 package hu.cubix.hr.patrik.service;
 
 import hu.cubix.hr.patrik.model.Employee;
+import hu.cubix.hr.patrik.repository.EmployeeRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractEmployeeService implements EmployeeService {
 
-    private Map<Long, Employee> employees = new HashMap<>();
+    @Autowired
+    EmployeeRepository employeeRepository;
 
+    @Autowired
+    CompanyService companyService;
+
+    @Transactional
     public Employee create(Employee employee) {
-        if (findById(employee.getId()) != null) {
+        if (employeeRepository.existsById(employee.getId())) {
             return null;
         }
-        return save(employee);
+        return employeeRepository.save(employee);
     }
 
+    @Transactional
     public Employee update(Employee employee) {
-        if (findById(employee.getId()) == null) {
+        if (!employeeRepository.existsById(employee.getId())) {
             return null;
         }
-        return save(employee);
-    }
-
-    public Employee save(Employee employee) {
-        employees.put(employee.getId(), employee);
-        return employee;
+        return employeeRepository.save(employee);
     }
 
     public List<Employee> findAll() {
-        return new ArrayList<>(employees.values());
+        return employeeRepository.findAll();
     }
 
     public Employee findById(long id) {
-        return employees.get(id);
+        return employeeRepository.findById(id).get();
     }
 
-    public void remove(long id) {
-        employees.remove(id);
+    @Transactional
+    public void delete(long id) {
+        Employee employee = findById(id);
+        if (employee.getCompany() != null) {
+            companyService.deleteEmployeeFromCompany(employee.getCompany().getId(), id);
+        }
+        employeeRepository.deleteById(id);
     }
 
     public List<Employee> findByHigherSalary(int salary) {
-        List<Employee> employeesWithHigherSalary = new ArrayList<>();
-        for(Employee employee : employees.values()) {
-            if(employee.getSalary() > salary) {
-                employeesWithHigherSalary.add(employee);
-            }
-        }
-        return employeesWithHigherSalary;
+        return employeeRepository.findBySalaryGreaterThan(salary);
+    }
+
+    public List<Employee> findByJob(String job) {
+        return employeeRepository.findByJob(job);
+    }
+
+    public List<Employee> findByNameStartingWith(String name) {
+        return employeeRepository.findByNameStartingWithIgnoreCase(name);
+    }
+
+    public List<Employee> findByEntryDateBetween(LocalDateTime from, LocalDateTime to) {
+        return employeeRepository.findByEntryDateBetween(from, to);
     }
 }

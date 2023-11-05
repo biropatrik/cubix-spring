@@ -13,7 +13,7 @@
             <td><a th:text="${employee.name}" th:href="@{/employee/{id}(id=${employee.id})}"></a></td>
             <td th:text="${employee.job}"></td>
             <td th:text="${employee.salary}"></td>
-            <td th:text="${employee.timestamp}"></td>
+            <td th:text="${employee.entryDate}"></td>
             <td><a th:text="Delete" th:href="@{/delete/{id}(id=${employee.id})}"></a></td>
         </tr>
     </table><br/>
@@ -23,7 +23,7 @@
         Name: <input th:field="*{name}" /> <br/>
         Job: <input th:field="*{job}" /> <br/>
         Salary: <input th:field="*{salary}" /> <br/>
-        Timestamp: <input th:field="*{timestamp}" /> <br/>
+        EntryDate: <input th:field="*{entryDate}" /> <br/>
         <input type="submit" value="Create" />
     </form>
 </body>
