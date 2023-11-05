@@ -48,7 +48,7 @@ public class EmployeeController {
                 emp.setName(employee.getName());
                 emp.setJob(employee.getJob());
                 emp.setSalary(employee.getSalary());
-                emp.setTimestamp(employee.getTimestamp());
+                emp.setEntryDate(employee.getEntryDate());
             }
         }
         return "redirect:/";

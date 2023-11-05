@@ -6,10 +6,12 @@ import hu.cubix.hr.patrik.model.Employee;
 import hu.cubix.hr.patrik.service.AbstractEmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -48,7 +50,7 @@ public class EmployeeRestController {
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        employeeService.remove(id);
+        employeeService.delete(id);
     }
 
     @GetMapping("/findByHigherSalary/{salary}")
@@ -59,6 +61,27 @@ public class EmployeeRestController {
     @PostMapping("/payRaise")
     public int getPayRaise(@RequestBody Employee employee) {
         return employeeService.getPayRaisePercent(employee);
+    }
+
+    @GetMapping("/findByJob/{job}")
+    public List<EmployeeDto> findByJob(@PathVariable String job) {
+        return employeeMapper.employeesToDtos(employeeService.findByJob(job));
+    }
+
+    @GetMapping("/findByNameStartingWith/{name}")
+    public List<EmployeeDto> findByNameStartingWith(@PathVariable String name) {
+        return employeeMapper.employeesToDtos(employeeService.findByNameStartingWith(name));
+    }
+
+    @GetMapping("/findByEntryDateBetween")
+    public List<EmployeeDto> findByEntryDateBetween(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime from,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime to) {
+        return employeeMapper.employeesToDtos(employeeService.findByEntryDateBetween(from, to));
     }
 
     private EmployeeDto getEmployeeDtoOrThrow(Employee employee) {
