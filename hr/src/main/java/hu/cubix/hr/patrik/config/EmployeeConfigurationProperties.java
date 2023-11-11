@@ -1,6 +1,5 @@
 package hu.cubix.hr.patrik.config;
 
-import hu.cubix.hr.patrik.service.SalaryService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 

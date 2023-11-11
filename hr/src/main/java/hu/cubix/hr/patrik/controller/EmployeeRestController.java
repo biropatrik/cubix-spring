@@ -6,6 +6,9 @@ import hu.cubix.hr.patrik.model.Employee;
 import hu.cubix.hr.patrik.service.AbstractEmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.SortDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +35,7 @@ public class EmployeeRestController {
     @GetMapping("/{id}")
     public EmployeeDto findById(@PathVariable Long id) {
         return getEmployeeDtoOrThrow(
-                employeeService.findById(id));
+                employeeService.findById(id).orElse(null));
     }
 
     @PostMapping
@@ -63,9 +66,14 @@ public class EmployeeRestController {
         return employeeService.getPayRaisePercent(employee);
     }
 
-    @GetMapping("/findByJob/{job}")
-    public List<EmployeeDto> findByJob(@PathVariable String job) {
-        return employeeMapper.employeesToDtos(employeeService.findByJob(job));
+    @GetMapping("/findByPosition/{position}")
+    public List<EmployeeDto> findByPosition(@PathVariable String position, @SortDefault("id") Pageable pageable) {
+        Page<Employee> page = employeeService.findByPosition(position, pageable);
+        System.out.println(page.getTotalElements());
+        System.out.println(page.isFirst());
+        System.out.println(page.isLast());
+        System.out.println(page.getNumberOfElements());
+        return employeeMapper.employeesToDtos(page.getContent());
     }
 
     @GetMapping("/findByNameStartingWith/{name}")

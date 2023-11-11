@@ -1,11 +1,12 @@
 package hu.cubix.hr.patrik.service;
 
+import hu.cubix.hr.patrik.dto.SalaryAvgDto;
 import hu.cubix.hr.patrik.model.Company;
 import hu.cubix.hr.patrik.model.Employee;
 import hu.cubix.hr.patrik.repository.CompanyRepository;
-import hu.cubix.hr.patrik.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -16,14 +17,18 @@ public class CompanyServiceImpl implements CompanyService {
     CompanyRepository companyRepository;
 
     @Autowired
-    EmployeeRepository employeeRepository;
+    EmployeeService employeeService;
 
     @Override
     public Company create(Company company) {
         if (companyRepository.existsById(company.getId())) {
             return null;
         }
-        return companyRepository.save(company);
+        companyRepository.save(company);
+        company.getEmployees().forEach(e -> {
+            employeeService.save(e);
+        });
+        return company;
     }
 
     @Override
@@ -57,17 +62,17 @@ public class CompanyServiceImpl implements CompanyService {
     public Company addNewEmployee(long id, Employee employee) {
         Company company = companyRepository.findById(id).get();
         company.addEmployee(employee);
-        employeeRepository.save(employee);
+        employeeService.save(employee);
         return company;
     }
 
     @Override
     public Company deleteEmployeeFromCompany(long id, long employeeId) {
         Company company = companyRepository.findById(id).get();
-        Employee employee = employeeRepository.findById(employeeId).get();
+        Employee employee = employeeService.findById(employeeId).get();
         employee.setCompany(null);
         company.getEmployees().remove(employee);
-        employeeRepository.save(employee);
+        employeeService.save(employee);
         return company;
     }
 
@@ -78,8 +83,23 @@ public class CompanyServiceImpl implements CompanyService {
         company.getEmployees().clear();
         employees.forEach(e -> {
                 company.addEmployee(e);
-                employeeRepository.save(e);
+                employeeService.save(e);
         });
         return company;
+    }
+
+    @Override
+    public List<Company> findByEmployeesSalaryGreaterThan(int salary) {
+        return companyRepository.findByEmployeesSalaryGreaterThan(salary);
+    }
+
+    @Override
+    public List<Company> findByCountEmployeesGreaterThanEqual(Integer count) {
+        return companyRepository.findByCountEmployeesGreaterThanEqual(count);
+    }
+
+    @Override
+    public List<SalaryAvgDto> getAverageSalaryByCompanyId(Long companyId) {
+        return companyRepository.getAverageSalaryByCompanyId(companyId);
     }
 }

@@ -1,12 +1,16 @@
 package hu.cubix.hr.patrik.service;
 
 import hu.cubix.hr.patrik.model.Employee;
+import hu.cubix.hr.patrik.model.Position;
 import hu.cubix.hr.patrik.repository.EmployeeRepository;
-import jakarta.transaction.Transactional;
+import hu.cubix.hr.patrik.repository.PositionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class AbstractEmployeeService implements EmployeeService {
 
@@ -14,38 +18,42 @@ public abstract class AbstractEmployeeService implements EmployeeService {
     EmployeeRepository employeeRepository;
 
     @Autowired
-    CompanyService companyService;
+    PositionRepository positionRepository;
 
-    @Transactional
+    @Override
     public Employee create(Employee employee) {
         if (employeeRepository.existsById(employee.getId())) {
             return null;
         }
+        return save(employee);
+    }
+
+    @Override
+    public Employee save(Employee employee) {
+        processPosition(employee);
         return employeeRepository.save(employee);
     }
 
-    @Transactional
+    @Override
     public Employee update(Employee employee) {
         if (!employeeRepository.existsById(employee.getId())) {
             return null;
         }
-        return employeeRepository.save(employee);
+        return save(employee);
     }
 
+    @Override
     public List<Employee> findAll() {
         return employeeRepository.findAll();
     }
 
-    public Employee findById(long id) {
-        return employeeRepository.findById(id).get();
+    @Override
+    public Optional<Employee> findById(Long id) {
+        return employeeRepository.findById(id);
     }
 
-    @Transactional
-    public void delete(long id) {
-        Employee employee = findById(id);
-        if (employee.getCompany() != null) {
-            companyService.deleteEmployeeFromCompany(employee.getCompany().getId(), id);
-        }
+    @Override
+    public void delete(Long id) {
         employeeRepository.deleteById(id);
     }
 
@@ -53,8 +61,8 @@ public abstract class AbstractEmployeeService implements EmployeeService {
         return employeeRepository.findBySalaryGreaterThan(salary);
     }
 
-    public List<Employee> findByJob(String job) {
-        return employeeRepository.findByJob(job);
+    public Page<Employee> findByPosition(String position, Pageable pageable) {
+        return employeeRepository.findByPositionName(position, pageable);
     }
 
     public List<Employee> findByNameStartingWith(String name) {
@@ -63,5 +71,19 @@ public abstract class AbstractEmployeeService implements EmployeeService {
 
     public List<Employee> findByEntryDateBetween(LocalDateTime from, LocalDateTime to) {
         return employeeRepository.findByEntryDateBetween(from, to);
+    }
+
+    private void processPosition(Employee employee) {
+        String positionName = employee.getPosition().getName();
+        if (positionName != null) {
+            List<Position> positions = positionRepository.findByName(positionName);
+            Position position = null;
+            if (positions.isEmpty()) {
+                position = positionRepository.save(new Position(positionName, null));
+            } else {
+                position = positions.get(0);
+            }
+            employee.setPosition(position);
+        }
     }
 }

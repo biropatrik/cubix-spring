@@ -1,6 +1,8 @@
 package hu.cubix.hr.patrik.controller;
 
 import hu.cubix.hr.patrik.model.Employee;
+import hu.cubix.hr.patrik.model.Position;
+import hu.cubix.hr.patrik.model.Qualification;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,11 +13,12 @@ import java.util.*;
 
 @Controller
 public class EmployeeController {
+    Position position1 = new Position("Java Developer", Qualification.UNIVERSITY);
 
     private List<Employee> employees = new ArrayList<>();
 
     {
-        employees.add(new Employee(1L, "Bryant Chan", "Java Developer", 350, LocalDateTime.now()));
+        employees.add(new Employee(1L, "Bryant Chan", position1, 350, LocalDateTime.now()));
     }
 
     @GetMapping("/")
@@ -46,7 +49,7 @@ public class EmployeeController {
         for (Employee emp : employees) {
             if (emp.getId() == id) {
                 emp.setName(employee.getName());
-                emp.setJob(employee.getJob());
+                emp.setPosition(employee.getPosition());
                 emp.setSalary(employee.getSalary());
                 emp.setEntryDate(employee.getEntryDate());
             }

@@ -1,5 +1,6 @@
 package hu.cubix.hr.patrik.service;
 
+import hu.cubix.hr.patrik.dto.SalaryAvgDto;
 import hu.cubix.hr.patrik.model.Company;
 import hu.cubix.hr.patrik.model.Employee;
 
@@ -23,4 +24,10 @@ public interface CompanyService {
     public Company deleteEmployeeFromCompany(long id, long employeeId);
 
     public Company replaceEmployees(long id, List<Employee> employees);
-}
+
+    public List<Company> findByEmployeesSalaryGreaterThan(int salary);
+
+    public List<Company> findByCountEmployeesGreaterThanEqual(Integer count);
+
+    public List<SalaryAvgDto> getAverageSalaryByCompanyId(Long companyId);
+ }

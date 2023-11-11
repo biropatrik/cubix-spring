@@ -1,5 +1,6 @@
 package hu.cubix.hr.patrik.dto;
 
+import hu.cubix.hr.patrik.model.CompanyType;
 import jakarta.validation.Valid;
 
 import java.util.ArrayList;
@@ -12,16 +13,18 @@ public class CompanyDto {
     private String name;
     private String address;
     private List<@Valid EmployeeDto> employees = new ArrayList<>();
+    private CompanyType companyType;
 
     public CompanyDto() {
     }
 
-    public CompanyDto(long id, int registrationNumber, String name, String address, List<EmployeeDto> employees) {
+    public CompanyDto(long id, int registrationNumber, String name, String address, List<@Valid EmployeeDto> employees, CompanyType companyType) {
         this.id = id;
         this.registrationNumber = registrationNumber;
         this.name = name;
         this.address = address;
         this.employees = employees;
+        this.companyType = companyType;
     }
 
     public long getId() {
@@ -62,5 +65,13 @@ public class CompanyDto {
 
     public void setEmployees(List<EmployeeDto> employees) {
         this.employees = employees;
+    }
+
+    public CompanyType getCompanyType() {
+        return companyType;
+    }
+
+    public void setCompanyType(CompanyType companyType) {
+        this.companyType = companyType;
     }
 }
