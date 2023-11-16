@@ -1,99 +1,105 @@
 package hu.cubix.hr.patrik.service;
 
-import hu.cubix.hr.patrik.dto.EmployeeDto;
+import hu.cubix.hr.patrik.dto.SalaryAvgDto;
 import hu.cubix.hr.patrik.model.Company;
+import hu.cubix.hr.patrik.model.Employee;
+import hu.cubix.hr.patrik.repository.CompanyRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 @Service
 public class CompanyServiceImpl implements CompanyService {
 
-    private Map<Long, Company> companies = new HashMap<>();
+    @Autowired
+    CompanyRepository companyRepository;
+
+    @Autowired
+    EmployeeService employeeService;
 
     @Override
     public Company create(Company company) {
-        if (findById(company.getId()) != null) {
+        if (companyRepository.existsById(company.getId())) {
             return null;
         }
-        return save(company);
-    }
-
-    @Override
-    public Company update(Company company) {
-        if (findById(company.getId()) == null) {
-            return null;
-        }
-        return save(company);
-    }
-
-    @Override
-    public Company save(Company company) {
-        companies.put(company.getId(), company);
+        companyRepository.save(company);
+        company.getEmployees().forEach(e -> {
+            employeeService.save(e);
+        });
         return company;
     }
 
     @Override
-    public List<Company> findAll(Optional<Boolean> isFull) {
-        if (isFull.orElse(false)) {
-            return new ArrayList<>(companies.values());
-        } else {
-            return companies.values().stream()
-                    .map(this::mapCompanyWithoutEmployees)
-                    .toList();
-        }
-    }
-
-    @Override
-    public Company findById(long id, Optional<Boolean> isFull) {
-        Company company = companies.get(id);
-        if (isFull.orElse(false)) {
-            return company;
-        } else {
-            return mapCompanyWithoutEmployees(company);
-        }
-    }
-
-    public Company findById(long id) {
-        return findById(id, Optional.of(true));
-    }
-
-    @Override
-    public void remove(long id) {
-        companies.remove(id);
-    }
-
-    @Override
-    public Company addNewEmployee(long id, EmployeeDto employeeDto) {
-        Company company = findById(id);
-        if (company == null) {
+    public Company update(Company company) {
+        if (!companyRepository.existsById(company.getId())) {
             return null;
         }
-        company.getEmployees().add(employeeDto);
+        replaceEmployees(company.getId(), company.getEmployees());
+        return companyRepository.save(company);
+    }
+
+    @Override
+    public List<Company> findAll() {
+        return companyRepository.findAll();
+    }
+
+    @Override
+    public Optional<Company> findById(long id) {
+        return companyRepository.findById(id);
+    }
+
+    @Override
+    public void delete(long id) {
+        Company company = companyRepository.findById(id).get();
+        company.getEmployees().forEach(e -> e.setCompany(null));
+        company.getEmployees().clear();
+        companyRepository.deleteById(id);
+    }
+
+    @Override
+    public Company addNewEmployee(long id, Employee employee) {
+        Company company = companyRepository.findById(id).get();
+        company.addEmployee(employee);
+        employeeService.save(employee);
         return company;
     }
 
     @Override
     public Company deleteEmployeeFromCompany(long id, long employeeId) {
-        Company company = findById(id);
-        if (company == null) {
-            return null;
-        }
-        company.getEmployees().removeIf(emp -> emp.getId() == employeeId);
+        Company company = companyRepository.findById(id).get();
+        Employee employee = employeeService.findById(employeeId).get();
+        employee.setCompany(null);
+        company.getEmployees().remove(employee);
+        employeeService.save(employee);
         return company;
     }
 
     @Override
-    public Company replaceEmployees(long id, List<EmployeeDto> employeeDtos) {
-        Company company = findById(id);
-        if (company == null) {
-            return null;
-        }
-        company.setEmployees(employeeDtos);
+    public Company replaceEmployees(long id, List<Employee> employees) {
+        Company company = companyRepository.findById(id).get();
+        company.getEmployees().forEach(e -> e.setCompany(null));
+        company.getEmployees().clear();
+        employees.forEach(e -> {
+                company.addEmployee(e);
+                employeeService.save(e);
+        });
         return company;
     }
 
-    private Company mapCompanyWithoutEmployees(Company c) {
-        return new Company(c.getId(), c.getRegistrationNumber(), c.getName(), c.getAddress(), null);
+    @Override
+    public List<Company> findByEmployeesSalaryGreaterThan(int salary) {
+        return companyRepository.findByEmployeesSalaryGreaterThan(salary);
+    }
+
+    @Override
+    public List<Company> findByCountEmployeesGreaterThanEqual(Integer count) {
+        return companyRepository.findByCountEmployeesGreaterThanEqual(count);
+    }
+
+    @Override
+    public List<SalaryAvgDto> getAverageSalaryByCompanyId(Long companyId) {
+        return companyRepository.getAverageSalaryByCompanyId(companyId);
     }
 }

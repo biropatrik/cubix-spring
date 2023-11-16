@@ -1,24 +1,42 @@
 package hu.cubix.hr.patrik.model;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+@Entity
 public class Employee {
 
+    @Id
+    @GeneratedValue
     private long id;
     private String name;
-    private String job;
+
+    @ManyToOne
+    private Position position;
     private int salary;
-    private LocalDateTime timestamp;
+    private LocalDateTime entryDate;
+
+    @ManyToOne
+    private Company company;
 
     public Employee() {
     }
 
-    public Employee(long id, String name, String job, int salary, LocalDateTime timestamp) {
+    public Employee(String name, Position position, int salary, LocalDateTime entryDate) {
+        this.name = name;
+        this.position = position;
+        this.salary = salary;
+        this.entryDate = entryDate;
+    }
+
+    public Employee(long id, String name, Position position, int salary, LocalDateTime entryDate) {
         this.id = id;
         this.name = name;
-        this.job = job;
+        this.position = position;
         this.salary = salary;
-        this.timestamp = timestamp;
+        this.entryDate = entryDate;
     }
 
     public long getId() {
@@ -29,12 +47,12 @@ public class Employee {
         this.id = id;
     }
 
-    public String getJob() {
-        return job;
+    public Position getPosition() {
+        return position;
     }
 
-    public void setJob(String job) {
-        this.job = job;
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
     public int getSalary() {
@@ -45,12 +63,12 @@ public class Employee {
         this.salary = salary;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public LocalDateTime getEntryDate() {
+        return entryDate;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+    public void setEntryDate(LocalDateTime entryDate) {
+        this.entryDate = entryDate;
     }
 
     public String getName() {
@@ -59,5 +77,26 @@ public class Employee {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return id == employee.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

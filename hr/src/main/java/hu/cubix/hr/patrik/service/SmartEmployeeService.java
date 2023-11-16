@@ -18,7 +18,7 @@ public class SmartEmployeeService extends AbstractEmployeeService implements Emp
     public int getPayRaisePercent(Employee employee) {
         int percentage = 0;
         float maxYear = 0;
-        float yearsSpent = getYearsSpentFromDateTime(employee.getTimestamp());
+        float yearsSpent = getYearsSpentFromDateTime(employee.getEntryDate());
         for(Raise raise : config.getSalary().getRaises()) {
             if(raise.getYears() >= maxYear && yearsSpent >= raise.getYears()) {
                 percentage = raise.getPercentage();

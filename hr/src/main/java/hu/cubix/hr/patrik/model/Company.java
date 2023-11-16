@@ -1,27 +1,43 @@
 package hu.cubix.hr.patrik.model;
 
-import hu.cubix.hr.patrik.dto.EmployeeDto;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+@Entity
 public class Company {
 
+    @Id
+    @GeneratedValue
     private long id;
     private int registrationNumber;
     private String name;
     private String address;
-    private List<EmployeeDto> employees = new ArrayList<>();
+
+    @OneToMany(mappedBy = "company")
+    private List<Employee> employees;
+
+    @ManyToOne
+    private CompanyType companyType;
 
     public Company() {
     }
 
-    public Company(long id, int registrationNumber, String name, String address, List<EmployeeDto> employees) {
-        this.id = id;
+    public Company(int registrationNumber, String name, String address, List<Employee> employees) {
         this.registrationNumber = registrationNumber;
         this.name = name;
         this.address = address;
-        this.employees = employees;
+        employees.forEach(this::addEmployee);
+    }
+
+    public Company(int registrationNumber, String name, String address, List<Employee> employees, CompanyType companyType) {
+        this.registrationNumber = registrationNumber;
+        this.name = name;
+        this.address = address;
+        employees.forEach(this::addEmployee);
+        this.companyType = companyType;
     }
 
     public long getId() {
@@ -56,11 +72,40 @@ public class Company {
         this.address = address;
     }
 
-    public List<EmployeeDto> getEmployees() {
+    public List<Employee> getEmployees() {
+        if (this.employees == null) {
+            this.employees = new ArrayList<>();
+        }
         return employees;
     }
 
-    public void setEmployees(List<EmployeeDto> employees) {
-        this.employees = employees;
+    public void setEmployees(List<Employee> employees) {
+        employees.forEach(this::addEmployee);
+    }
+
+    public CompanyType getCompanyType() {
+        return companyType;
+    }
+
+    public void setCompanyType(CompanyType companyType) {
+        this.companyType = companyType;
+    }
+
+    public void addEmployee(Employee emp) {
+        emp.setCompany(this);
+        getEmployees().add(emp);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Company company = (Company) o;
+        return id == company.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
