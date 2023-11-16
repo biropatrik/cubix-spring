@@ -16,7 +16,6 @@ public class Position {
     @NotEmpty
     private String name;
 
-    @Enumerated
     private Qualification minimalQualification;
 
     @OneToMany(mappedBy = "position")
