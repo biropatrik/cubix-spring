@@ -34,22 +34,21 @@ public class CompanyRestController {
 
     @GetMapping
     public List<CompanyDto> findAll(@RequestParam Optional<Boolean> full) {
-        List<Company> companies = companyService.findAll();
         if (full.orElse(false)) {
-            return companyMapper.companiesToDtos(companies);
+            return companyMapper.companiesToDtos(companyService.findAllWithEmployees());
         } else {
-            return companyMapper.companiesToSummaryDtos(companies);
+            return companyMapper.companiesToSummaryDtos(companyService.findAll());
         }
     }
 
     @GetMapping("/{id}")
     public CompanyDto findById(@PathVariable long id, @RequestParam Optional<Boolean> isFull) {
-        Company company = companyService.findById(id)
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (isFull.orElse(false)) {
-            return companyMapper.companyToDto(company);
+            return companyMapper.companyToDto(companyService.findByIdWithEmployees(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
         } else {
-            return companyMapper.companyToSummaryDto(company);
+            return companyMapper.companyToSummaryDto(companyService.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
         }
     }
 

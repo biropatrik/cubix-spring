@@ -25,6 +25,10 @@ public class Company {
     public Company() {
     }
 
+    public Company(String name) {
+        this.name = name;
+    }
+
     public Company(int registrationNumber, String name, String address, List<Employee> employees) {
         this.registrationNumber = registrationNumber;
         this.name = name;
@@ -33,6 +37,15 @@ public class Company {
     }
 
     public Company(int registrationNumber, String name, String address, List<Employee> employees, CompanyType companyType) {
+        this.registrationNumber = registrationNumber;
+        this.name = name;
+        this.address = address;
+        employees.forEach(this::addEmployee);
+        this.companyType = companyType;
+    }
+
+    public Company(long id, int registrationNumber, String name, String address, List<Employee> employees, CompanyType companyType) {
+        this.id = id;
         this.registrationNumber = registrationNumber;
         this.name = name;
         this.address = address;

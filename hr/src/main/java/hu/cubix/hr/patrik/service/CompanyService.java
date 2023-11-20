@@ -15,7 +15,11 @@ public interface CompanyService {
 
     public List<Company> findAll();
 
+    public List<Company> findAllWithEmployees();
+
     public Optional<Company> findById(long id);
+
+    public Optional<Company> findByIdWithEmployees(long id);
 
     public void delete(long id);
 

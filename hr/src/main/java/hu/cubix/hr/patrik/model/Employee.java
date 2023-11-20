@@ -39,6 +39,15 @@ public class Employee {
         this.entryDate = entryDate;
     }
 
+    public Employee(long id, String name, Position position, int salary, LocalDateTime entryDate, Company company) {
+        this.id = id;
+        this.name = name;
+        this.position = position;
+        this.salary = salary;
+        this.entryDate = entryDate;
+        this.company = company;
+    }
+
     public long getId() {
         return id;
     }
