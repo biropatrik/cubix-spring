@@ -2,7 +2,9 @@ package hu.cubix.hr.patrik.controller;
 
 import hu.cubix.hr.patrik.dto.EmployeeDto;
 import hu.cubix.hr.patrik.mapper.EmployeeMapper;
+import hu.cubix.hr.patrik.model.Company;
 import hu.cubix.hr.patrik.model.Employee;
+import hu.cubix.hr.patrik.model.Position;
 import hu.cubix.hr.patrik.service.AbstractEmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -90,6 +93,28 @@ public class EmployeeRestController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             LocalDateTime to) {
         return employeeMapper.employeesToDtos(employeeService.findByEntryDateBetween(from, to));
+    }
+
+    @GetMapping("/findEmployeesByExample")
+    public List<EmployeeDto> findEmployeesByExample(
+            @RequestParam(required = false) Optional<Long> id,
+            @RequestParam(required = false) String employeeName,
+            @RequestParam(required = false) String positionName,
+            @RequestParam(required = false) Optional<Integer> salary,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime entryDate,
+            @RequestParam(required = false) String companyName
+            ) {
+        return employeeMapper.employeesToDtos(
+                employeeService.findEmployeesByExample(
+                        new Employee(
+                                id.orElse(0L),
+                                employeeName,
+                                new Position(positionName, null),
+                                salary.orElse(0),
+                                entryDate,
+                                new Company(companyName)
+                        )));
     }
 
     private EmployeeDto getEmployeeDtoOrThrow(Employee employee) {

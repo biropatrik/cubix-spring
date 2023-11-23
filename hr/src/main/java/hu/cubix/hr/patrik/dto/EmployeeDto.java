@@ -23,6 +23,13 @@ public class EmployeeDto {
     public EmployeeDto()  {
     }
 
+    public EmployeeDto(String name, String positionName, int salary, LocalDateTime entryDate) {
+        this.name = name;
+        this.positionName = positionName;
+        this.salary = salary;
+        this.entryDate = entryDate;
+    }
+
     public EmployeeDto(long id, String name, String positionName, int salary, LocalDateTime entryDate) {
         this.id = id;
         this.name = name;

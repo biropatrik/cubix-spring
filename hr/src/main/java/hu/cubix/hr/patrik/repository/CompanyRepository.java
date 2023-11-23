@@ -6,15 +6,23 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CompanyRepository extends JpaRepository<Company, Long> {
 
+    @Query("SELECT c FROM Company c LEFT JOIN FETCH c.employees WHERE c.id = ?1")
+    Optional<Company> findByIdWithEmployees(long id);
+
+    @Query("SELECT DISTINCT c FROM Company c LEFT JOIN FETCH c.employees")
+    List<Company> findAllWithEmployees();
+
+    @Query("SELECT DISTINCT c FROM Company c JOIN FETCH c.employees e WHERE e.salary > ?1")
     List<Company> findByEmployeesSalaryGreaterThan(Integer salary);
 
-    @Query("select c from Company c left join c.employees group by c.id having count(*) >= ?1")
+    @Query("SELECT c FROM Company c LEFT JOIN FETCH c.employees WHERE SIZE(c.employees) > ?1")
     List<Company> findByCountEmployeesGreaterThanEqual(Integer count);
 
-    @Query("select new hu.cubix.hr.patrik.dto.SalaryAvgDto(e.position.name, AVG(e.salary))"
-            + "from Employee e where e.company.id = ?1 group by e.position.name order by AVG(e.salary) desc")
+    @Query("SELECT new hu.cubix.hr.patrik.dto.SalaryAvgDto(e.position.name, AVG(e.salary))"
+            + "FROM Employee e WHERE e.company.id = ?1 GROUP BY e.position.name ORDER BY AVG(e.salary) DESC")
     List<SalaryAvgDto> getAverageSalaryByCompanyId(Long companyId);
 }

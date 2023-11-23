@@ -20,6 +20,7 @@ public class CompanyServiceImpl implements CompanyService {
     EmployeeService employeeService;
 
     @Override
+    @Transactional
     public Company create(Company company) {
         if (companyRepository.existsById(company.getId())) {
             return null;
@@ -32,6 +33,7 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
+    @Transactional
     public Company update(Company company) {
         if (!companyRepository.existsById(company.getId())) {
             return null;
@@ -46,11 +48,22 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
+    public List<Company> findAllWithEmployees() {
+        return companyRepository.findAllWithEmployees();
+    }
+
+    @Override
     public Optional<Company> findById(long id) {
         return companyRepository.findById(id);
     }
 
     @Override
+    public Optional<Company> findByIdWithEmployees(long id) {
+        return companyRepository.findByIdWithEmployees(id);
+    }
+
+    @Override
+    @Transactional
     public void delete(long id) {
         Company company = companyRepository.findById(id).get();
         company.getEmployees().forEach(e -> e.setCompany(null));
@@ -59,31 +72,34 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public Company addNewEmployee(long id, Employee employee) {
-        Company company = companyRepository.findById(id).get();
+    @Transactional
+    public Company addNewEmployee(long id, Employee emp) {
+        Company company = companyRepository.findByIdWithEmployees(id).get();
+        Employee employee = employeeService.save(emp);
         company.addEmployee(employee);
-        employeeService.save(employee);
         return company;
     }
 
     @Override
+    @Transactional
     public Company deleteEmployeeFromCompany(long id, long employeeId) {
-        Company company = companyRepository.findById(id).get();
+        Company company = companyRepository.findByIdWithEmployees(id).get();
         Employee employee = employeeService.findById(employeeId).get();
         employee.setCompany(null);
         company.getEmployees().remove(employee);
-        employeeService.save(employee);
         return company;
     }
 
     @Override
+    @Transactional
     public Company replaceEmployees(long id, List<Employee> employees) {
-        Company company = companyRepository.findById(id).get();
-        company.getEmployees().forEach(e -> e.setCompany(null));
+        Company company = companyRepository.findByIdWithEmployees(id).get();
+        company.getEmployees().forEach(e -> {
+            e.setCompany(null);
+        });
         company.getEmployees().clear();
         employees.forEach(e -> {
-                company.addEmployee(e);
-                employeeService.save(e);
+                company.addEmployee(employeeService.save(e));
         });
         return company;
     }
