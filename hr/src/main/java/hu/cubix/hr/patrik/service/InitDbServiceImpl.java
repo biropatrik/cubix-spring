@@ -27,14 +27,18 @@ public class InitDbServiceImpl implements InitDbService {
     @Autowired
     PositionDetailsByCompanyRepository positionDetailsByCompanyRepository;
 
+    @Autowired
+    VacationRepository vacationRepository;
+
     @Override
     @Transactional
     public void clearDB() {
-        employeeRepository.deleteAll();
-        positionDetailsByCompanyRepository.deleteAll();
-        positionRepository.deleteAll();
-        companyRepository.deleteAll();
-        companyTypeRepository.deleteAll();
+        vacationRepository.deleteAllInBatch();
+        employeeRepository.deleteAllInBatch();
+        positionDetailsByCompanyRepository.deleteAllInBatch();
+        positionRepository.deleteAllInBatch();
+        companyRepository.deleteAllInBatch();
+        companyTypeRepository.deleteAllInBatch();
     }
 
     @Override
@@ -69,5 +73,23 @@ public class InitDbServiceImpl implements InitDbService {
         pd2.setMinSalary(500);
         pd2.setPosition(position2);
         positionDetailsByCompanyRepository.save(pd2);
+
+        vacationRepository.save(new Vacation(
+                LocalDateTime.of(2023,12,10,8,0),
+                LocalDateTime.of(2023,12,15,8,0),
+                VacationStatus.NEW,
+                emp1));
+
+        vacationRepository.save(new Vacation(
+                LocalDateTime.of(2023,12,20,8,0),
+                LocalDateTime.of(2023,12,25,8,0),
+                VacationStatus.NEW,
+                emp3));
+
+        vacationRepository.save(new Vacation(
+                LocalDateTime.of(2024,1,3,8,0),
+                LocalDateTime.of(2024,1,5,8,0),
+                VacationStatus.NEW,
+                emp4));
     }
 }

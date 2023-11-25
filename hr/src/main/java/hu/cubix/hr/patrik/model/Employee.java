@@ -3,6 +3,7 @@ package hu.cubix.hr.patrik.model;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -21,7 +22,17 @@ public class Employee {
     @ManyToOne
     private Company company;
 
+    @OneToMany(mappedBy = "requester")
+    private List<Vacation> vacations;
+
+    @OneToMany(mappedBy = "managerOfEmployee")
+    private List<Vacation> managedVacations;
+
     public Employee() {
+    }
+
+    public Employee(String name) {
+        this.name = name;
     }
 
     public Employee(String name, Position position, int salary, LocalDateTime entryDate) {
@@ -94,6 +105,22 @@ public class Employee {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    public List<Vacation> getVacations() {
+        return vacations;
+    }
+
+    public void setVacations(List<Vacation> vacations) {
+        this.vacations = vacations;
+    }
+
+    public List<Vacation> getManagedVacations() {
+        return managedVacations;
+    }
+
+    public void setManagedVacations(List<Vacation> managedVacations) {
+        this.managedVacations = managedVacations;
     }
 
     @Override
