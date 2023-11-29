@@ -21,7 +21,7 @@ public interface VacationService {
 
     Vacation modifyVacation(long vacationId, VacationInsertDto vacation);
 
-    Vacation manageVacation(long vacationId, VacationStatus vacationStatus, long managerOfEmployee);
+    Vacation manageVacation(long vacationId, VacationStatus vacationStatus);
 
     Page<Vacation> findVacationsByExample(VacationExampleDto exampleDto, Pageable pageable);
 }

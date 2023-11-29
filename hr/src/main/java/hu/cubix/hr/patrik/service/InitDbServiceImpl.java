@@ -3,6 +3,7 @@ package hu.cubix.hr.patrik.service;
 import hu.cubix.hr.patrik.model.*;
 import hu.cubix.hr.patrik.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,9 @@ public class InitDbServiceImpl implements InitDbService {
     @Autowired
     VacationRepository vacationRepository;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
     @Override
     @Transactional
     public void clearDB() {
@@ -48,7 +52,14 @@ public class InitDbServiceImpl implements InitDbService {
         Position position2 = positionRepository.save(new Position("Sitebuild", Qualification.HIGH_SCHOOL));
 
         Employee emp1 = new Employee("John Doe", position1, 900, LocalDateTime.of(2021,4,11, 8, 0));
+        emp1.setUsername("user1");
+        emp1.setPassword(passwordEncoder.encode("pass"));
+
         Employee emp2 = new Employee("Carson Conrad", position1, 1200, LocalDateTime.of(2020,2,1, 8, 0));
+        emp2.setUsername("user2");
+        emp2.setPassword(passwordEncoder.encode("pass"));
+        emp2.setManager(emp1);
+
         Employee emp3 = new Employee("Anakin Boone", position1, 1300, LocalDateTime.of(2022,6,10, 8, 0));
         Employee emp4 = new Employee("Allan Fox", position1, 1000, LocalDateTime.of(2019,5,10, 8, 0));
         Employee emp5 = new Employee("Allan Fox", position2, 1010, LocalDateTime.of(2019,5,10, 8, 0));
@@ -78,7 +89,7 @@ public class InitDbServiceImpl implements InitDbService {
                 LocalDateTime.of(2023,12,10,8,0),
                 LocalDateTime.of(2023,12,15,8,0),
                 VacationStatus.NEW,
-                emp1));
+                emp2));
 
         vacationRepository.save(new Vacation(
                 LocalDateTime.of(2023,12,20,8,0),

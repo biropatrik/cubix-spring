@@ -22,6 +22,8 @@ public class VacationDto {
 
     private LocalDateTime insertedTime;
 
+    private LocalDateTime approvedAt;
+
     private EmployeeDto requester;
 
     private EmployeeDto managerOfEmployee;
@@ -85,5 +87,13 @@ public class VacationDto {
 
     public void setManagerOfEmployee(EmployeeDto managerOfEmployee) {
         this.managerOfEmployee = managerOfEmployee;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
     }
 }

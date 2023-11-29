@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.SortDefault;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ public class VacationRestController {
     VacationMapper vacationMapper;
 
     @PostMapping()
+    @PreAuthorize("#vacationInsertDto.requesterId == authentication.principal.employee.id")
     public VacationDto create(@RequestBody @Valid VacationInsertDto vacationInsertDto) {
         return vacationMapper.vacationToDto(vacationService.create(vacationInsertDto));
     }
@@ -72,6 +74,7 @@ public class VacationRestController {
     }
 
     @PutMapping("/modify/{id}")
+    @PreAuthorize("#vacationInsertDto.requesterId == authentication.principal.employee.id")
     public VacationDto modifyVacation(@PathVariable long id, @RequestBody @Valid VacationInsertDto vacationInsertDto) {
         return vacationMapper.vacationToDto(vacationService.modifyVacation(id, vacationInsertDto));
     }
@@ -79,10 +82,9 @@ public class VacationRestController {
     @PutMapping("/manage/{id}")
     public VacationDto manageVacation(
             @PathVariable long id,
-            @RequestParam VacationStatus status,
-            @RequestParam long managerOfEmployee) {
+            @RequestParam VacationStatus status) {
 
-        return vacationMapper.vacationToDto(vacationService.manageVacation(id, status, managerOfEmployee));
+        return vacationMapper.vacationToDto(vacationService.manageVacation(id, status));
     }
 
     @DeleteMapping("/{id}")

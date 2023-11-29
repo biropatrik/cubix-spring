@@ -38,6 +38,8 @@ public class Vacation {
     @ManyToOne
     private Employee managerOfEmployee;
 
+    private LocalDateTime approvedAt;
+
     @AssertTrue(message = "The end date must be greater than the start date!")
     private boolean isEndDateValid() {
         return !endDate.isBefore(startDate);
@@ -99,6 +101,14 @@ public class Vacation {
 
     public void setRequester(Employee requester) {
         this.requester = requester;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
     }
 
     public Employee getManagerOfEmployee() {

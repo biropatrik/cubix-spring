@@ -25,8 +25,11 @@ public class Employee {
     @OneToMany(mappedBy = "requester")
     private List<Vacation> vacations;
 
-    @OneToMany(mappedBy = "managerOfEmployee")
-    private List<Vacation> managedVacations;
+    @ManyToOne
+    private Employee manager;
+
+    private String username;
+    private String password;
 
     public Employee() {
     }
@@ -111,16 +114,32 @@ public class Employee {
         return vacations;
     }
 
+    public Employee getManager() {
+        return manager;
+    }
+
+    public void setManager(Employee manager) {
+        this.manager = manager;
+    }
+
     public void setVacations(List<Vacation> vacations) {
         this.vacations = vacations;
     }
 
-    public List<Vacation> getManagedVacations() {
-        return managedVacations;
+    public String getUsername() {
+        return username;
     }
 
-    public void setManagedVacations(List<Vacation> managedVacations) {
-        this.managedVacations = managedVacations;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override

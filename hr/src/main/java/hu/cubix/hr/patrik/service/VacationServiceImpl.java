@@ -11,14 +11,18 @@ import hu.cubix.hr.patrik.model.Vacation;
 import hu.cubix.hr.patrik.model.VacationStatus;
 import hu.cubix.hr.patrik.repository.EmployeeRepository;
 import hu.cubix.hr.patrik.repository.VacationRepository;
+import hu.cubix.hr.patrik.security.HrUser;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -65,6 +69,7 @@ public class VacationServiceImpl implements VacationService {
 
         vacation.setStartDate(vacationDto.getStartDate());
         vacation.setEndDate(vacationDto.getEndDate());
+        vacation.setInsertedTime(LocalDateTime.now());
         return vacation;
     }
 
@@ -73,6 +78,9 @@ public class VacationServiceImpl implements VacationService {
     public void delete(long id) {
         Vacation vacation = vacationRepository.findById(id)
                 .orElseThrow(VacationNotFoundException::new);
+
+        if (getCurrentEmployee().getId() != vacation.getRequester().getId())
+            throw new AccessDeniedException("Only the employee of the request can delete it!");
 
         if (!vacation.getStatus().equals(VacationStatus.NEW)) {
             throw new VacationAlreadyProcessedException();
@@ -83,14 +91,19 @@ public class VacationServiceImpl implements VacationService {
 
     @Override
     @Transactional
-    public Vacation manageVacation(long vacationId, VacationStatus vacationStatus, long managerOfEmployee) {
+    public Vacation manageVacation(long vacationId, VacationStatus vacationStatus) {
+        long managerOfEmployee = getCurrentEmployee().getId();
+
         Vacation vacation = vacationRepository.findById(vacationId)
                 .orElseThrow(VacationNotFoundException::new);
-        Employee employee = employeeRepository.findById(managerOfEmployee)
-                .orElseThrow(EmployeeNotFoundException::new);
+        Employee manager = vacation.getRequester().getManager();
+
+        if (manager != null && manager.getId() != managerOfEmployee)
+            throw new AccessDeniedException("Only manager of employee can approve holiday request!");
 
         vacation.setStatus(vacationStatus);
-        vacation.setManagerOfEmployee(employee);
+        vacation.setManagerOfEmployee(manager);
+        vacation.setApprovedAt(LocalDateTime.now());
         return vacation;
     }
 
@@ -131,5 +144,9 @@ public class VacationServiceImpl implements VacationService {
         }
 
         return vacationRepository.findAll(specification, pageable);
+    }
+
+    private Employee getCurrentEmployee() {
+        return ((HrUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getEmployee();
     }
 }
