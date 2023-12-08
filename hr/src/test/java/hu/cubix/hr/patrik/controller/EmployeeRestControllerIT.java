@@ -3,10 +3,15 @@ package hu.cubix.hr.patrik.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import hu.cubix.hr.patrik.dto.EmployeeDto;
+import hu.cubix.hr.patrik.dto.LoginDto;
+import hu.cubix.hr.patrik.model.Employee;
+import hu.cubix.hr.patrik.repository.EmployeeRepository;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDateTime;
@@ -18,14 +23,47 @@ import java.util.List;
 public class EmployeeRestControllerIT {
 
     private static final String API_EMPLOYEES = "/api/employees";
+    private static final String API_LOGIN = "/api/login";
     private static final String EMPLOYEE_NAME = "Teszt Name";
     private static final String EMPLOYEE_JOB = "Teszt Job";
+    private static final String USERNAME = "testuser";
+    private static final String PASSWORD = "pass";
     private static final int EMPLOYEE_SALARY = 1200;
     private static final LocalDateTime EMPLOYEE_ENTRY = LocalDateTime.of(2000,10,10,10,0);
 
 
     @Autowired
     WebTestClient webTestClient;
+
+    @Autowired
+    EmployeeRepository employeeRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    private String token;
+
+    @BeforeEach
+    public void init() {
+        if (employeeRepository.findByUsername(USERNAME).isEmpty()) {
+            Employee testuser = new Employee();
+            testuser.setUsername(USERNAME);
+            testuser.setPassword(passwordEncoder.encode(PASSWORD));
+            employeeRepository.save(testuser);
+        }
+
+        var login = new LoginDto();
+        login.setUsername(USERNAME);
+        login.setPassword(PASSWORD);
+
+        this.token = webTestClient.post()
+                .uri(API_LOGIN)
+                .bodyValue(login)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+    }
 
     @Test
     void testThatCreatedEmployeeIsListed() {
@@ -53,6 +91,7 @@ public class EmployeeRestControllerIT {
         webTestClient
             .post()
             .uri(API_EMPLOYEES)
+            .headers(h -> h.setBearerAuth(token))
             .bodyValue(employeeWithInvalidName)
             .exchange()
             .expectStatus().isBadRequest();
@@ -66,6 +105,7 @@ public class EmployeeRestControllerIT {
         webTestClient
                 .post()
                 .uri(API_EMPLOYEES)
+                .headers(h -> h.setBearerAuth(token))
                 .bodyValue(employeeWithInvalidName)
                 .exchange()
                 .expectStatus().isBadRequest();
@@ -79,6 +119,7 @@ public class EmployeeRestControllerIT {
         webTestClient
                 .post()
                 .uri(API_EMPLOYEES)
+                .headers(h -> h.setBearerAuth(token))
                 .bodyValue(employeeWithInvalidName)
                 .exchange()
                 .expectStatus().isBadRequest();
@@ -123,6 +164,7 @@ public class EmployeeRestControllerIT {
         webTestClient
             .put()
             .uri(API_EMPLOYEES + "/{id}", modifiedEmployee.getId())
+            .headers(h -> h.setBearerAuth(token))
             .bodyValue(modifiedEmployee)
             .exchange()
             .expectStatus().isBadRequest();
@@ -141,6 +183,7 @@ public class EmployeeRestControllerIT {
         webTestClient
             .post()
             .uri(API_EMPLOYEES)
+            .headers(h -> h.setBearerAuth(token))
             .bodyValue(employeeDto)
             .exchange()
             .expectStatus().isOk();
@@ -150,6 +193,7 @@ public class EmployeeRestControllerIT {
         webTestClient
             .put()
             .uri(API_EMPLOYEES + "/{id}", employeeDto.getId())
+            .headers(h -> h.setBearerAuth(token))
             .bodyValue(employeeDto)
             .exchange()
             .expectStatus().isOk();
@@ -159,6 +203,7 @@ public class EmployeeRestControllerIT {
         List<EmployeeDto> allEmployees = webTestClient
             .get()
             .uri(API_EMPLOYEES)
+            .headers(h -> h.setBearerAuth(token))
             .exchange()
             .expectStatus().isOk()
             .expectBodyList(EmployeeDto.class)

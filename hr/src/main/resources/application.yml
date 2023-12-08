@@ -14,3 +14,10 @@ employee:
     -
        years: 2.5
        percentage: 2
+
+hr:
+  jwtData:
+    issuer: HrApp
+    alg: HMAC512
+    secret: mysecret
+    duration: 10m

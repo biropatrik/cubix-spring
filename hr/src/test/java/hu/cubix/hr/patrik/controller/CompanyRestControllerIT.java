@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import hu.cubix.hr.patrik.dto.CompanyDto;
 import hu.cubix.hr.patrik.dto.EmployeeDto;
+import hu.cubix.hr.patrik.dto.LoginDto;
 import hu.cubix.hr.patrik.model.Company;
 import hu.cubix.hr.patrik.model.Employee;
 import hu.cubix.hr.patrik.model.Position;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDateTime;
@@ -28,6 +30,9 @@ public class CompanyRestControllerIT {
     private static final String API_COMPANIES_ADD_NEW_EMPLOYEES = "/api/companies/{id}/employees";
     private static final String API_COMPANIES_DELETE_EMPLOYEE_FROM_COMPANY = "/api/companies/{id}/employees/{employeeId}";
     private static final String API_COMPANIES_REPLACE_EMPLOYEES = "/api/companies/{id}/employees";
+    private static final String API_LOGIN = "/api/login";
+    private static final String USERNAME = "testuser";
+    private static final String PASSWORD = "pass";
     private static long companyId;
     private static long employeeId;
 
@@ -46,12 +51,21 @@ public class CompanyRestControllerIT {
     @Autowired
     CompanyRepository companyRepository;
 
+    @Autowired
+    VacationRepository vacationRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    private String token;
+
     @BeforeEach
     void init() {
-        employeeRepository.deleteAll();
-        positionDetailsByCompanyRepository.deleteAll();
-        positionRepository.deleteAll();
-        companyRepository.deleteAll();
+        vacationRepository.deleteAllInBatch();
+        employeeRepository.deleteAllInBatch();
+        positionDetailsByCompanyRepository.deleteAllInBatch();
+        positionRepository.deleteAllInBatch();
+        companyRepository.deleteAllInBatch();
 
         Position position = new Position("Java Developer", Qualification.HIGH_SCHOOL);
         Employee employee = new Employee("John Doe", position, 900, LocalDateTime.now());
@@ -60,6 +74,29 @@ public class CompanyRestControllerIT {
         positionRepository.save(position);
         companyId = companyRepository.save(company).getId();
         employeeId = employeeRepository.save(employee).getId();
+
+        login();
+    }
+
+    private void login() {
+        if (employeeRepository.findByUsername(USERNAME).isEmpty()) {
+            Employee testuser = new Employee();
+            testuser.setUsername(USERNAME);
+            testuser.setPassword(passwordEncoder.encode(PASSWORD));
+            employeeRepository.save(testuser);
+        }
+
+        var login = new LoginDto();
+        login.setUsername(USERNAME);
+        login.setPassword(PASSWORD);
+
+        this.token = webTestClient.post()
+                .uri(API_LOGIN)
+                .bodyValue(login)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
     }
 
     @Test
@@ -71,6 +108,7 @@ public class CompanyRestControllerIT {
          webTestClient
                 .post()
                 .uri(API_COMPANIES_ADD_NEW_EMPLOYEES, companyId)
+                .headers(h -> h.setBearerAuth(token))
                 .bodyValue(employeeDto)
                 .exchange()
                 .expectStatus().isOk();
@@ -88,6 +126,7 @@ public class CompanyRestControllerIT {
         webTestClient
                 .delete()
                 .uri(API_COMPANIES_DELETE_EMPLOYEE_FROM_COMPANY, companyId, employeeId)
+                .headers(h -> h.setBearerAuth(token))
                 .exchange()
                 .expectStatus().isOk();
 
@@ -107,6 +146,7 @@ public class CompanyRestControllerIT {
         webTestClient
                 .put()
                 .uri(API_COMPANIES_REPLACE_EMPLOYEES, companyId)
+                .headers(h -> h.setBearerAuth(token))
                 .bodyValue(List.of(emp1, emp2))
                 .exchange()
                 .expectStatus().isOk();
@@ -126,6 +166,7 @@ public class CompanyRestControllerIT {
         List<CompanyDto> allCompanies = webTestClient
                 .get()
                 .uri("/api/companies?full=true")
+                .headers(h -> h.setBearerAuth(token))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(CompanyDto.class)

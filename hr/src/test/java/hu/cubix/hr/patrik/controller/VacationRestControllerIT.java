@@ -2,6 +2,7 @@ package hu.cubix.hr.patrik.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import hu.cubix.hr.patrik.dto.LoginDto;
 import hu.cubix.hr.patrik.dto.VacationDto;
 import hu.cubix.hr.patrik.dto.VacationInsertDto;
 import hu.cubix.hr.patrik.model.Employee;
@@ -31,6 +32,7 @@ public class VacationRestControllerIT {
     private static final String API_VACATIONS_FIND_BY_ID = "/api/vacations/{id}";
     private static final String API_VACATIONS_MODIFY_VACATION = "/api/vacations/modify/{id}";
     private static final String API_VACATIONS_MANAGE_VACATION = "/api/vacations/manage/{id}";
+    private static final String API_LOGIN = "/api/login";
     private static final String VACATION_ALREADY_PROCESSED_MESSAGE = "Vacation request already processed!";
 
     private static final String USERNAME_EMPLOYEE = "user";
@@ -49,6 +51,9 @@ public class VacationRestControllerIT {
     @Autowired
     VacationRepository vacationRepository;
 
+    private String tokenEmployee;
+    private String tokenManager;
+
     @BeforeEach
     void init() {
         vacationRepository.deleteAllInBatch();
@@ -64,6 +69,30 @@ public class VacationRestControllerIT {
         employee.setPassword(passwordEncoder.encode(PASSWORD));
         employee.setManager(manager);
         employeeRepository.save(employee);
+
+        tokenEmployee = getTokenFormLogin(USERNAME_EMPLOYEE);
+        tokenManager = getTokenFormLogin(USERNAME_MANAGER);
+    }
+
+    private String getTokenFormLogin(String username) {
+        if (employeeRepository.findByUsername(username).isEmpty()) {
+            Employee testuser = new Employee();
+            testuser.setUsername(username);
+            testuser.setPassword(passwordEncoder.encode(PASSWORD));
+            employeeRepository.save(testuser);
+        }
+
+        var login = new LoginDto();
+        login.setUsername(username);
+        login.setPassword(PASSWORD);
+
+        return webTestClient.post()
+                .uri(API_LOGIN)
+                .bodyValue(login)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
     }
 
     @Test
@@ -75,7 +104,7 @@ public class VacationRestControllerIT {
 
         List<Vacation> vacationsBefore = vacationRepository.findAll();
 
-        createVacation(insertDto, USERNAME_MANAGER);
+        createVacation(insertDto, tokenManager);
 
         List<Vacation> vacationsAfter = vacationRepository.findAll();
 
@@ -93,7 +122,7 @@ public class VacationRestControllerIT {
         webTestClient
                 .post()
                 .uri(API_VACATIONS_CREATE)
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .bodyValue(insertDto)
                 .exchange()
                 .expectStatus().isBadRequest();
@@ -105,7 +134,7 @@ public class VacationRestControllerIT {
         webTestClient
                 .post()
                 .uri(API_VACATIONS_CREATE)
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .bodyValue(insertDto)
                 .exchange()
                 .expectStatus().isBadRequest();
@@ -123,13 +152,13 @@ public class VacationRestControllerIT {
         LocalDateTime endDate2 = startDate2.plusDays(5);
         VacationInsertDto insertDto2 = new VacationInsertDto(startDate2, endDate2, employee2.getId());
 
-        createVacation(insertDto1, USERNAME_MANAGER);
-        createVacation(insertDto2, USERNAME_EMPLOYEE);
+        createVacation(insertDto1, tokenManager);
+        createVacation(insertDto2, tokenEmployee);
 
         List<VacationDto> vacationDtos = webTestClient
                 .get()
                 .uri(API_VACATIONS)
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(VacationDto.class)
@@ -153,8 +182,8 @@ public class VacationRestControllerIT {
         LocalDateTime endDate2 = startDate2.plusDays(5);
         VacationInsertDto insertDto2 = new VacationInsertDto(startDate2, endDate2, employee2.getId());
 
-        createVacation(insertDto1, USERNAME_MANAGER);
-        createVacation(insertDto2, USERNAME_EMPLOYEE);
+        createVacation(insertDto1, tokenManager);
+        createVacation(insertDto2, tokenEmployee);
 
         List<VacationDto> vacationDtos1 = webTestClient
                 .get()
@@ -162,7 +191,7 @@ public class VacationRestControllerIT {
                         .path(API_VACATIONS)
                         .queryParam("requesterNamePrefix", "T")
                         .build())
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(VacationDto.class)
@@ -186,8 +215,8 @@ public class VacationRestControllerIT {
         LocalDateTime endDate2 = startDate2.plusDays(5);
         VacationInsertDto insertDto2 = new VacationInsertDto(startDate2, endDate2, employee2.getId());
 
-        createVacation(insertDto1, USERNAME_MANAGER);
-        createVacation(insertDto2, USERNAME_EMPLOYEE);
+        createVacation(insertDto1, tokenManager);
+        createVacation(insertDto2, tokenEmployee);
 
         LocalDateTime startDate = startDate1.minusDays(5);
         LocalDateTime endDate = startDate1.plusDays(1);
@@ -198,7 +227,7 @@ public class VacationRestControllerIT {
                         .queryParam("startDate", startDate)
                         .queryParam("endDate", endDate)
                         .build())
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(VacationDto.class)
@@ -217,12 +246,12 @@ public class VacationRestControllerIT {
         LocalDateTime endDate = startDate.plusDays(2);
         VacationInsertDto insertDto = new VacationInsertDto(startDate, endDate, employee.getId());
 
-        VacationDto vacationDto = createVacation(insertDto, USERNAME_MANAGER);
+        VacationDto vacationDto = createVacation(insertDto, tokenManager);
 
         webTestClient
                 .get()
                 .uri(API_VACATIONS_FIND_BY_ID, vacationDto.getId())
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(VacationDto.class)
@@ -237,7 +266,7 @@ public class VacationRestControllerIT {
         LocalDateTime endDate = startDate.plusDays(2);
         VacationInsertDto insertDto = new VacationInsertDto(startDate, endDate, employee.getId());
 
-        VacationDto vacationDto = createVacation(insertDto, USERNAME_MANAGER);
+        VacationDto vacationDto = createVacation(insertDto, tokenManager);
 
         LocalDateTime modifiedEndDate = endDate.plusDays(5);
         insertDto.setEndDate(modifiedEndDate);
@@ -245,7 +274,7 @@ public class VacationRestControllerIT {
         webTestClient
                 .put()
                 .uri(API_VACATIONS_MODIFY_VACATION, vacationDto.getId())
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .bodyValue(insertDto)
                 .exchange()
                 .expectStatus().isOk()
@@ -261,7 +290,7 @@ public class VacationRestControllerIT {
         LocalDateTime endDate = startDate.plusDays(2);
         VacationInsertDto insertDto = new VacationInsertDto(startDate, endDate, employee.getId());
 
-        VacationDto vacationDto = createVacation(insertDto, USERNAME_EMPLOYEE);
+        VacationDto vacationDto = createVacation(insertDto, tokenEmployee);
 
         //Manage
         VacationStatus managedStatus = VacationStatus.DECLINED;
@@ -273,7 +302,7 @@ public class VacationRestControllerIT {
                         .queryParam("status", managedStatus)
                         .queryParam("managerOfEmployee", manager.getId())
                         .build(vacationDto.getId()))
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .exchange()
                 .expectStatus().isOk();
 
@@ -283,7 +312,7 @@ public class VacationRestControllerIT {
         webTestClient
                 .put()
                 .uri(API_VACATIONS_MODIFY_VACATION, vacationDto.getId())
-                .headers(header -> header.setBasicAuth(USERNAME_EMPLOYEE, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenEmployee))
                 .bodyValue(insertDto)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -299,7 +328,7 @@ public class VacationRestControllerIT {
         LocalDateTime endDate = startDate.plusDays(2);
         VacationInsertDto insertDto = new VacationInsertDto(startDate, endDate, employee.getId());
 
-        VacationDto vacationDto = createVacation(insertDto, USERNAME_EMPLOYEE);
+        VacationDto vacationDto = createVacation(insertDto, tokenEmployee);
 
         //Manage
         VacationStatus managedStatus = VacationStatus.DECLINED;
@@ -311,7 +340,7 @@ public class VacationRestControllerIT {
                         .queryParam("status", managedStatus)
                         .queryParam("managerOfEmployee", manager.getId())
                         .build(vacationDto.getId()))
-                .headers(header -> header.setBasicAuth(USERNAME_MANAGER, PASSWORD))
+                .headers(header -> header.setBearerAuth(tokenManager))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(VacationDto.class)
@@ -319,11 +348,11 @@ public class VacationRestControllerIT {
                         Objects.requireNonNull(result.getResponseBody()).getStatus()));
     }
 
-    private VacationDto createVacation(VacationInsertDto insertDto, String username) {
+    private VacationDto createVacation(VacationInsertDto insertDto, String token) {
         VacationDto vacationDto = webTestClient
                 .post()
                 .uri(API_VACATIONS_CREATE)
-                .headers(header -> header.setBasicAuth(username, PASSWORD))
+                .headers(header -> header.setBearerAuth(token))
                 .bodyValue(insertDto)
                 .exchange()
                 .expectStatus().isOk()
