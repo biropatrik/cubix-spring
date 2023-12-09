@@ -1,50 +1,41 @@
-package hu.cubix.logistics.patrik.model;
+package hu.cubix.logistics.patrik.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import hu.cubix.logistics.patrik.validation.Create;
+import hu.cubix.logistics.patrik.validation.Update;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Size;
 
-import java.util.List;
-import java.util.Objects;
+public class AddressDto {
 
-@Entity
-public class Address {
+    @Null(groups = {Create.class})
+    private Long id;
 
-    @Id
-    @GeneratedValue
-    private long id;
-
-    @Size(min = 2, max = 2)
+    @Size(min = 2, max = 2, groups = {Create.class, Update.class})
     private String countryISO;
 
-    @NotEmpty
+    @NotEmpty(groups = {Create.class, Update.class})
     private String city;
 
-    @NotEmpty
+    @NotEmpty(groups = {Create.class, Update.class})
     private String street;
 
-    @NotEmpty
+    @NotEmpty(groups = {Create.class, Update.class})
     private String zipCode;
 
-    @NotNull
+    @NotNull(groups = {Create.class, Update.class})
     private Integer houseNumber;
 
     private Integer latitude;
 
     private Integer longitude;
 
-    @OneToMany(mappedBy = "address")
-    private List<Milestone> milestone;
-
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -102,26 +93,5 @@ public class Address {
 
     public void setLongitude(Integer longitude) {
         this.longitude = longitude;
-    }
-
-    public List<Milestone> getMilestone() {
-        return milestone;
-    }
-
-    public void setMilestone(List<Milestone> milestone) {
-        this.milestone = milestone;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Address address = (Address) o;
-        return id == address.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }
