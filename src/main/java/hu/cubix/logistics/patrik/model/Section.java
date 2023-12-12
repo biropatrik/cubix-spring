@@ -24,6 +24,16 @@ public class Section {
     @ManyToOne
     private TransportPlan transportPlan;
 
+    public Section() {
+    }
+
+    public Section(Milestone start, Milestone end, short orderOfSection, TransportPlan transportPlan) {
+        this.start = start;
+        this.end = end;
+        this.orderOfSection = orderOfSection;
+        this.transportPlan = transportPlan;
+    }
+
     public long getId() {
         return id;
     }

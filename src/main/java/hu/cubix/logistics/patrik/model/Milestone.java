@@ -1,9 +1,6 @@
 package hu.cubix.logistics.patrik.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -19,6 +16,14 @@ public class Milestone {
     private Address address;
 
     private LocalDateTime plannedTime;
+
+    public Milestone() {
+    }
+
+    public Milestone(Address address, LocalDateTime plannedTime) {
+        this.address = address;
+        this.plannedTime = plannedTime;
+    }
 
     public long getId() {
         return id;

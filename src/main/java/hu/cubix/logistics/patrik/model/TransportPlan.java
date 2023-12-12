@@ -20,6 +20,13 @@ public class TransportPlan {
     @OneToMany(mappedBy = "transportPlan")
     private List<Section> sections;
 
+    public TransportPlan() {
+    }
+
+    public TransportPlan(int income) {
+        this.income = income;
+    }
+
     public long getId() {
         return id;
     }

@@ -40,6 +40,20 @@ public class Address {
     @OneToMany(mappedBy = "address")
     private List<Milestone> milestone;
 
+    public Address() {
+    }
+
+    public Address(String countryISO, String city, String street, String zipCode, Integer houseNumber,
+                   Integer latitude, Integer longitude) {
+        this.countryISO = countryISO;
+        this.city = city;
+        this.street = street;
+        this.zipCode = zipCode;
+        this.houseNumber = houseNumber;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public long getId() {
         return id;
     }

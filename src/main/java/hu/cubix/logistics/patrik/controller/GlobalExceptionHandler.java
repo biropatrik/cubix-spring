@@ -1,12 +1,10 @@
 package hu.cubix.logistics.patrik.controller;
 
-import hu.cubix.logistics.patrik.exception.AddressNotFoundException;
-import hu.cubix.logistics.patrik.exception.DifferentAddressIdsException;
+import hu.cubix.logistics.patrik.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.validation.FieldError;
 
@@ -42,6 +40,36 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DifferentAddressIdsException.class)
     public ResponseEntity<Map<String, String>> handleDifferentAddressIdsException(DifferentAddressIdsException e) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put(e.getClass().getSimpleName(), e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errors);
+    }
+
+    @ExceptionHandler(TransportPlanNotFoundException.class)
+    public ResponseEntity<Map<String, String >> handleTransportPlanNotFoundException(TransportPlanNotFoundException e) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put(e.getClass().getSimpleName(), e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(errors);
+    }
+
+    @ExceptionHandler(MilestoneNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleMilestoneNotFoundException(MilestoneNotFoundException e) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put(e.getClass().getSimpleName(), e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(errors);
+    }
+
+    @ExceptionHandler(MilestoneIsNotInTheTransportPlanException.class)
+    public ResponseEntity<Map<String, String>> handleMilestoneIsNotInTheTransportPlanException(MilestoneIsNotInTheTransportPlanException e) {
         Map<String, String> errors = new HashMap<>();
         errors.put(e.getClass().getSimpleName(), e.getMessage());
 
